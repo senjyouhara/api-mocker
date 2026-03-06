@@ -1,0 +1,165 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  prepare-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract changelog for tag
+        shell: bash
+        run: |
+          tag="${{ github.ref_name }}"
+          version="${tag#v}"
+
+          # 使用 awk 提取对应版本的 changelog 内容
+          body=$(awk -v ver="$version" '
+            /^## v?'"$version"'/ { found=1; next }
+            /^## / && found { exit }
+            found { print }
+          ' CHANGELOG.md)
+
+          if [ -z "$body" ]; then
+            echo "Changelog entry for version $version not found"
+            exit 1
+          fi
+
+          # GitHub Actions multiline env var
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          echo "$body" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub release (body from Windows)
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ env.RELEASE_BODY }}
+          draft: false
+          prerelease: false
+
+  build:
+    permissions:
+      contents: write
+    needs: prepare-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: windows
+          - platform: ubuntu-latest
+            target: linux
+          - platform: macos-latest
+            target: macos
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux only)
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.15.0
+
+      - name: Install PNPM
+        run: npm i -g pnpm
+
+      - name: Install frontend dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build the app
+        run: pnpm tauri build --ci
+
+      - name: Package portable (Windows only)
+        if: matrix.target == 'windows'
+        shell: powershell
+        run: |
+          $tauriConf = Get-Content "src-tauri\tauri.conf.json" -Raw | ConvertFrom-Json
+          $productName = $tauriConf.productName
+          $version = $tauriConf.version
+
+          if (-not $productName -or -not $version) {
+            Write-Error "productName or version not found in tauri.conf.json"
+            exit 1
+          }
+
+          $exe = Get-ChildItem "src-tauri\target\release" -Filter *.exe |
+                 Where-Object { $_.Name -notmatch "updater" } |
+                 Select-Object -First 1
+
+          if (-not $exe) {
+            Write-Error "No exe found in target/release"
+            exit 1
+          }
+
+          $zipName = "$productName_$version_x64-portable.zip"
+          mkdir portable -Force
+          Copy-Item $exe.FullName portable\
+          Compress-Archive portable $zipName -Force
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+
+      - name: Upload release assets (Windows)
+        if: matrix.target == 'windows'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.msi
+            ${{ env.ZIP_NAME }}
+          fail_on_unmatched_files: false
+
+      - name: Upload release assets (Linux)
+        if: matrix.target == 'linux'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.rpm
+          fail_on_unmatched_files: false
+
+      - name: Upload release assets (macOS)
+        if: matrix.target == 'macos'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.app.tar.gz
+          fail_on_unmatched_files: false

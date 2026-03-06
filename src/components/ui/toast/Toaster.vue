@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { useToast } from '@/stores/toast';
+import Toast from './Toast.vue';
+
+const { toasts, dismiss } = useToast();
+</script>
+
+<template>
+  <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
+    <transition-group name="toast">
+      <toast
+        v-for="toast in toasts"
+        :key="toast.id"
+        :title="toast.title"
+        :description="toast.description"
+        :variant="toast.variant"
+        @close="dismiss(toast.id)"
+      />
+    </transition-group>
+  </div>
+</template>
+
+<style scoped>
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+</style>

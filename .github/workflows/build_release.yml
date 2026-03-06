@@ -96,7 +96,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build the app
-        run: pnpm tauri build --ci
+        run: pnpm tauri build
 
       - name: Package portable (Windows only)
         if: matrix.target == 'windows'

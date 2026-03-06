@@ -2,11 +2,15 @@
 import { ref } from 'vue';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import { useEnvStore } from '@/stores/mock/env';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Button as UiButton } from '@/components/ui/button';
+import { Input as UiInput } from '@/components/ui/input';
+import { Select as UiSelect } from '@/components/ui/select';
+import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
+import {
+  Dialog as UiDialog,
+  DialogContent as UiDialogContent,
+  DialogHeader as UiDialogHeader,
+} from '@/components/ui/dialog';
 
 const store = useEnvStore();
 
@@ -34,17 +38,17 @@ const addVariable = () => {
   <div class="h-full flex flex-col">
     <!-- 环境选择器 -->
     <div class="flex items-center gap-2 p-3 border-b border-border">
-      <Select
+      <ui-select
         :model-value="store.activeEnvId ?? ''"
-        @update:model-value="store.setActiveEnvironment($event || null)"
         class="h-8 flex-1"
+        @update:model-value="store.setActiveEnvironment($event || null)"
       >
         <option value="">无环境</option>
         <option v-for="env in store.environments" :key="env.id" :value="env.id">
           {{ env.name }}
         </option>
-      </Select>
-      <Button
+      </ui-select>
+      <ui-button
         v-if="store.activeEnvId"
         variant="ghost"
         size="icon"
@@ -52,11 +56,11 @@ const addVariable = () => {
         title="删除环境"
         @click="store.deleteEnvironment(store.activeEnvId)"
       >
-        <Trash2 :size="14" />
-      </Button>
-      <Button variant="outline" class="h-8 w-8 p-0" @click="showAddDialog = true">
-        <Plus :size="14" />
-      </Button>
+        <trash2 :size="14" />
+      </ui-button>
+      <ui-button variant="outline" class="h-8 w-8 p-0" @click="showAddDialog = true">
+        <plus :size="14" />
+      </ui-button>
     </div>
 
     <!-- 变量列表 -->
@@ -78,57 +82,61 @@ const addVariable = () => {
           :key="index"
           class="flex items-center gap-2 mb-2"
         >
-          <Checkbox
+          <ui-checkbox
             :model-value="variable.enabled"
             @update:model-value="
               store.updateVariable(store.activeEnvId!, index, { enabled: $event })
             "
           />
-          <Input
+          <ui-input
             :model-value="variable.key"
-            @update:model-value="store.updateVariable(store.activeEnvId!, index, { key: $event })"
             placeholder="KEY"
             class="flex-1 h-8 font-mono text-xs"
+            @update:model-value="store.updateVariable(store.activeEnvId!, index, { key: $event })"
           />
-          <Input
+          <ui-input
             :model-value="variable.value"
-            @update:model-value="store.updateVariable(store.activeEnvId!, index, { value: $event })"
             placeholder="VALUE"
             class="flex-1 h-8 font-mono text-xs"
+            @update:model-value="store.updateVariable(store.activeEnvId!, index, { value: $event })"
           />
-          <Button
+          <ui-button
             variant="ghost"
             size="icon"
             class="w-8 h-8 text-muted-foreground hover:text-destructive"
             @click="store.deleteVariable(store.activeEnvId!, index)"
           >
-            <Trash2 :size="14" />
-          </Button>
+            <trash2 :size="14" />
+          </ui-button>
         </div>
         <!-- 添加变量按钮 -->
-        <Button size="sm" variant="ghost" class="w-full mt-2" @click="addVariable">
-          <Plus :size="14" />
+        <ui-button
+          size="sm"
+          variant="ghost"
+          class="w-full mt-2"
+          @click="addVariable">
+          <plus :size="14" />
           添加变量
-        </Button>
+        </ui-button>
       </template>
     </div>
 
     <!-- 新建环境对话框 -->
-    <Dialog v-model:open="showAddDialog">
-      <DialogContent class="w-80">
-        <DialogHeader>
+    <ui-dialog v-model:open="showAddDialog">
+      <ui-dialog-content class="w-80">
+        <ui-dialog-header>
           <h3 class="font-bold text-lg">新建环境</h3>
-        </DialogHeader>
-        <Input
+        </ui-dialog-header>
+        <ui-input
           v-model="newEnvName"
           placeholder="环境名称（如 dev, test, prod）"
           @keyup.enter="addEnvironment"
         />
         <div class="flex justify-end gap-2 mt-4">
-          <Button variant="outline" @click="showAddDialog = false">取消</Button>
-          <Button @click="addEnvironment">确定</Button>
+          <ui-button variant="outline" @click="showAddDialog = false">取消</ui-button>
+          <ui-button @click="addEnvironment">确定</ui-button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ui-dialog-content>
+    </ui-dialog>
   </div>
 </template>

@@ -3,8 +3,13 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as monaco from 'monaco-editor';
 
 // 禁用 Monaco 的 worker（使用同步模式）
-// @ts-ignore
-self.MonacoEnvironment = {
+const monacoGlobal = globalThis as typeof globalThis & {
+  MonacoEnvironment?: {
+    getWorker: () => null;
+  };
+};
+
+monacoGlobal.MonacoEnvironment = {
   getWorker: () => null,
 };
 
@@ -21,7 +26,7 @@ const props = withDefaults(
     readOnly: false,
     minimap: false,
     lineNumbers: true,
-  }
+  },
 );
 
 const emit = defineEmits<{
@@ -103,12 +108,12 @@ watch(
               text: newValue,
             },
           ],
-          () => null
+          () => null,
         );
         editor.pushUndoStop();
       }
     }
-  }
+  },
 );
 
 // 监听语言变化
@@ -121,7 +126,7 @@ watch(
         monaco.editor.setModelLanguage(model, newLang);
       }
     }
-  }
+  },
 );
 
 onBeforeUnmount(() => {
@@ -138,5 +143,5 @@ defineExpose({ format });
 </script>
 
 <template>
-  <div ref="containerRef" class="w-full h-full min-h-[200px]" />
+  <div ref="containerRef" class="w-full h-full min-h-[200px]"></div>
 </template>

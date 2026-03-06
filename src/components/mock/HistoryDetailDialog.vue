@@ -157,7 +157,7 @@ const responseHeadersArray = computed(() => {
             </div>
             <pre
               class="p-2 bg-muted rounded text-xs font-mono overflow-auto max-h-40 text-foreground"
-              >{{ formatJson(history.body) }}</pre
+            >{{ formatJson(history.body) }}</pre
             >
           </div>
         </TabsContent>
@@ -221,7 +221,7 @@ const responseHeadersArray = computed(() => {
               </div>
               <pre
                 class="p-2 bg-muted rounded text-xs font-mono overflow-auto max-h-60 text-foreground"
-                >{{ formatJson(history.response.body) }}</pre
+              >{{ formatJson(history.response.body) }}</pre
               >
             </div>
           </template>

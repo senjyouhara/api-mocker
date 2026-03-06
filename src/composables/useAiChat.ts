@@ -82,9 +82,11 @@ export function useAiChat() {
       }
 
       // 读取流式数据
-      while (true) {
+      let streamDone = false;
+      while (!streamDone) {
         const { done, value } = await reader.read();
-        if (done) break;
+        streamDone = done;
+        if (streamDone) break;
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n').filter((line) => line.trim() !== '');

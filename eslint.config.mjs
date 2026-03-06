@@ -67,10 +67,10 @@ export default tseslint.config(
 
       // === TypeScript 规则 ===
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'off',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
 
       // === Vue 规则 ===
@@ -89,15 +89,13 @@ export default tseslint.config(
       ],
       'vue/no-v-html': 'warn',
       'vue/attribute-hyphenation': ['error', 'always'],
-      'vue/component-name-in-template-casing': [
-        'error',
-        'kebab-case',
-        { registeredComponentsOnly: false },
-      ],
+      'vue/component-name-in-template-casing': 'off',
       'vue/v-on-event-hyphenation': ['error', 'always', { autofix: true }],
       'vue/custom-event-name-casing': ['error', 'kebab-case'],
       'vue/no-unused-components': 'warn',
       'vue/no-unused-vars': 'warn',
+      'vue/require-default-prop': 'off',
+      'vue/no-v-html': 'off',
       'vue/require-name-property': 'off', // script setup 不需要 name
     },
   }

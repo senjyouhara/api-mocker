@@ -16,7 +16,7 @@ const props = withDefaults(
   {
     keyPlaceholder: '字段名',
     valuePlaceholder: '字段值',
-  }
+  },
 );
 
 const emit = defineEmits<{
@@ -38,7 +38,7 @@ watch(
   (newVal) => {
     items.value = [...newVal];
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 同步到父组件
@@ -136,8 +136,8 @@ if (items.value.length === 0) {
         <div class="w-20 flex items-center">
           <Select
             :model-value="item.type"
-            @update:model-value="updateRow(item.id, 'type', $event)"
             class="flex w-full items-center h-7 text-xs"
+            @update:model-value="updateRow(item.id, 'type', $event)"
           >
             <option value="text">Text</option>
             <option value="file">File</option>

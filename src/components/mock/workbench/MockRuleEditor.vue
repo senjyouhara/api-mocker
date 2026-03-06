@@ -44,7 +44,7 @@ watch(
       selectedRuleId.value = null;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 添加规则
@@ -66,7 +66,7 @@ const addRule = () => {
     collectionStore.activeEndpointId,
     ruleName,
     endpoint?.method || 'GET',
-    endpoint?.path || '/'
+    endpoint?.path || '/',
   );
 
   // 只有当前没有选中规则时才自动选中新规则
@@ -119,7 +119,7 @@ watch(
       jsonError.value = null;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 监听 AI 生成的待插入内容
@@ -132,7 +132,7 @@ watch(
       validateBody(formatted);
       settingsStore.setPendingInsertContent(null);
     }
-  }
+  },
 );
 </script>
 
@@ -230,10 +230,18 @@ watch(
           <div class="flex items-center justify-between mb-1 shrink-0">
             <label class="text-sm text-muted-foreground">响应体 (支持 Mock.js 语法)</label>
             <div class="flex items-center gap-1">
-              <Button size="sm" variant="ghost" @click="formatBody" title="格式化 JSON">
+              <Button
+                size="sm"
+                variant="ghost"
+                title="格式化 JSON"
+                @click="formatBody">
                 <WrapText :size="14" />
               </Button>
-              <Button size="sm" variant="ghost" @click="isExpanded = true" title="展开编辑器">
+              <Button
+                size="sm"
+                variant="ghost"
+                title="展开编辑器"
+                @click="isExpanded = true">
                 <Maximize2 :size="14" />
               </Button>
             </div>
@@ -266,10 +274,18 @@ watch(
       <div class="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
         <label class="text-sm font-medium">响应体编辑器</label>
         <div class="flex items-center gap-1">
-          <Button size="sm" variant="ghost" @click="formatBody" title="格式化 JSON">
+          <Button
+            size="sm"
+            variant="ghost"
+            title="格式化 JSON"
+            @click="formatBody">
             <WrapText :size="14" />
           </Button>
-          <Button size="sm" variant="ghost" @click="isExpanded = false" title="收起编辑器">
+          <Button
+            size="sm"
+            variant="ghost"
+            title="收起编辑器"
+            @click="isExpanded = false">
             <Minimize2 :size="14" />
           </Button>
         </div>

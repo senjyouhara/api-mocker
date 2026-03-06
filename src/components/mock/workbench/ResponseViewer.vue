@@ -119,7 +119,7 @@ watch(
   () => {
     imageLoading.value = true;
     imageLoaded.value = false;
-  }
+  },
 );
 
 // 图片加载完成

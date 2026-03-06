@@ -128,8 +128,10 @@ const getEndpointName = (endpointId?: string) => {
       <div class="flex items-center gap-2">
         <Clock :size="16" class="text-muted-foreground" />
         <span class="text-sm font-medium">请求历史</span>
-        <span v-if="histories.length > 0" class="text-xs text-muted-foreground"
-          >({{ histories.length }})</span
+        <span
+          v-if="histories.length > 0"
+          class="text-xs text-muted-foreground"
+        >({{ histories.length }})</span
         >
       </div>
       <button

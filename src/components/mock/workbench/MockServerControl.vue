@@ -3,9 +3,13 @@ import { onMounted, ref } from 'vue';
 import { Play, Square, Server, Settings } from 'lucide-vue-next';
 import { useMockServerStore } from '@/stores/mock/server';
 import { useSettingsStore } from '@/stores/mock/settings';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Button as UiButton } from '@/components/ui/button';
+import { Input as UiInput } from '@/components/ui/input';
+import {
+  Dialog as UiDialog,
+  DialogContent as UiDialogContent,
+  DialogHeader as UiDialogHeader,
+} from '@/components/ui/dialog';
 
 const serverStore = useMockServerStore();
 const settingsStore = useSettingsStore();
@@ -54,65 +58,79 @@ onMounted(() => {
 
 <template>
   <div class="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-    <Server :size="16" class="text-muted-foreground" />
+    <server :size="16" class="text-muted-foreground" />
     <span class="text-sm font-medium">Mock 服务器</span>
 
-    <div class="flex-1" />
+    <div class="flex-1"></div>
 
     <!-- 状态显示 -->
     <div v-if="serverStore.running" class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-success animate-pulse" />
+      <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
       <span class="text-xs text-muted-foreground"> 运行中: {{ serverStore.serverUrl }} </span>
     </div>
     <div v-else class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-muted-foreground" />
+      <span class="w-2 h-2 rounded-full bg-muted-foreground"></span>
       <span class="text-xs text-muted-foreground"
-        >已停止 (端口: {{ settingsStore.mockServerPort }})</span
+      >已停止 (端口: {{ settingsStore.mockServerPort }})</span
       >
     </div>
 
     <!-- 设置按钮 -->
-    <Button size="sm" variant="ghost" :disabled="serverStore.running" @click="openSettings">
-      <Settings :size="14" />
-    </Button>
+    <ui-button
+      size="sm"
+      variant="ghost"
+      :disabled="serverStore.running"
+      @click="openSettings">
+      <settings :size="14" />
+    </ui-button>
 
     <!-- 控制按钮 -->
-    <Button
+    <ui-button
       v-if="!serverStore.running"
       size="sm"
       variant="default"
       :disabled="serverStore.loading"
       @click="handleStart"
     >
-      <Play :size="14" />
+      <play :size="14" />
       启动
-    </Button>
+    </ui-button>
 
     <template v-else>
-      <Button size="sm" variant="destructive" :disabled="serverStore.loading" @click="handleStop">
-        <Square :size="14" />
+      <ui-button
+        size="sm"
+        variant="destructive"
+        :disabled="serverStore.loading"
+        @click="handleStop"
+      >
+        <square :size="14" />
         停止
-      </Button>
+      </ui-button>
     </template>
 
     <!-- 设置对话框 -->
-    <Dialog v-model:open="showSettings">
-      <DialogContent class="w-80">
-        <DialogHeader>
+    <ui-dialog v-model:open="showSettings">
+      <ui-dialog-content class="w-80">
+        <ui-dialog-header>
           <h3 class="font-bold text-lg">服务器设置</h3>
-        </DialogHeader>
+        </ui-dialog-header>
         <div class="space-y-4">
           <div>
             <label class="text-sm font-medium">端口号</label>
-            <Input v-model="tempPort" type="number" min="1024" max="65535" class="mt-1" />
+            <ui-input
+              v-model="tempPort"
+              type="number"
+              min="1024"
+              max="65535"
+              class="mt-1" />
             <p class="text-xs text-muted-foreground mt-1">有效范围: 1024 - 65535</p>
           </div>
         </div>
         <div class="flex justify-end gap-2 mt-4">
-          <Button variant="outline" @click="showSettings = false">取消</Button>
-          <Button @click="saveSettings">保存</Button>
+          <ui-button variant="outline" @click="showSettings = false">取消</ui-button>
+          <ui-button @click="saveSettings">保存</ui-button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ui-dialog-content>
+    </ui-dialog>
   </div>
 </template>

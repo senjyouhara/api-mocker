@@ -67,7 +67,7 @@ watch(
     }
     store.saveToEndpoint();
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 监听接口切换，重新校验 URL
@@ -79,7 +79,7 @@ watch(
     nextTick(() => {
       validateUrl();
     });
-  }
+  },
 );
 
 // 校验 URL 唯一性
@@ -92,7 +92,7 @@ const validateUrl = () => {
   const duplicate = collectionStore.getDuplicateEndpoint(
     store.method,
     path,
-    store.currentEndpointId
+    store.currentEndpointId,
   );
   if (duplicate) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
@@ -133,7 +133,7 @@ watch(
   () => {
     validateBodyJson();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 流式请求相关
@@ -155,7 +155,7 @@ onMounted(async () => {
       'http-stream-start received:',
       event.payload,
       'currentRequestId:',
-      currentRequestId
+      currentRequestId,
     );
     if (event.payload.request_id !== currentRequestId) return;
 
@@ -423,13 +423,13 @@ const sendRequest = async () => {
       <!-- 方法选择器 -->
       <Select
         :model-value="store.method"
+        class="h-8 w-24 pr-2 font-mono font-semibold text-sm"
         @update:model-value="
           (v) => {
             store.method = v as HttpMethod;
             validateUrl();
           }
         "
-        class="h-8 w-24 pr-2 font-mono font-semibold text-sm"
       >
         <option v-for="m in methods" :key="m" :value="m">{{ m }}</option>
       </Select>
@@ -449,7 +449,7 @@ const sendRequest = async () => {
         <span
           v-if="store.isLoading"
           class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"
-        />
+        ></span>
         <Send v-else :size="14" />
         发送
       </Button>
@@ -468,7 +468,11 @@ const sendRequest = async () => {
     <Tabs v-model="activeTab" default-value="params" class="flex-1 flex flex-col min-h-0">
       <div class="border-b border-border">
         <TabsList class="bg-transparent p-0 h-auto">
-          <TabsTrigger v-for="tab in tabs" :key="tab.id" :value="tab.id" variant="underline">
+          <TabsTrigger
+            v-for="tab in tabs"
+            :key="tab.id"
+            :value="tab.id"
+            variant="underline">
             {{ tab.label }}
           </TabsTrigger>
         </TabsList>
@@ -495,9 +499,9 @@ const sendRequest = async () => {
               class="flex items-center gap-1.5 cursor-pointer"
             >
               <input
+                v-model="store.bodyType"
                 type="radio"
                 :value="bt.id"
-                v-model="store.bodyType"
                 class="w-3.5 h-3.5 accent-primary"
               />
               <span class="text-sm text-foreground">{{ bt.label }}</span>
@@ -507,8 +511,8 @@ const sendRequest = async () => {
             size="sm"
             variant="ghost"
             :class="{ invisible: store.bodyType !== 'json' }"
-            @click="formatBody"
             title="格式化 JSON"
+            @click="formatBody"
           >
             <WrapText :size="14" />
             格式化
@@ -519,7 +523,7 @@ const sendRequest = async () => {
         <div v-if="store.bodyType === 'none'" class="text-muted-foreground text-sm">
           此请求没有 Body
         </div>
-        <div class="flex-1" v-else-if="store.bodyType === 'form'">
+        <div v-else-if="store.bodyType === 'form'" class="flex-1">
           <FormDataTable
             v-model="store.formData"
             key-placeholder="字段名"
@@ -534,7 +538,7 @@ const sendRequest = async () => {
             "
             class="w-full flex-1 p-3 rounded-md bg-muted font-mono text-sm text-foreground resize-none outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground border"
             :class="bodyJsonError ? 'border-destructive' : 'border-border'"
-          />
+          ></textarea>
           <p v-if="bodyJsonError" class="text-xs text-destructive mt-1 shrink-0">
             {{ bodyJsonError }}
           </p>

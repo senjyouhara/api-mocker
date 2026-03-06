@@ -37,7 +37,7 @@ watch(
       urlError.value = '';
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 监听 method 或 path 变化，清除错误提示
@@ -52,7 +52,7 @@ const validateUrl = () => {
   const duplicate = collectionStore.getDuplicateEndpoint(
     localMethod.value,
     path,
-    currentEndpoint.value.id
+    currentEndpoint.value.id,
   );
   if (duplicate) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
@@ -69,7 +69,7 @@ const saveChanges = () => {
   const duplicate = collectionStore.getDuplicateEndpoint(
     localMethod.value,
     path,
-    currentEndpoint.value.id
+    currentEndpoint.value.id,
   );
   if (duplicate) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
@@ -151,7 +151,7 @@ const methodColors: Record<HttpMethod, string> = {
           v-model="localDescription"
           placeholder="接口描述..."
           class="w-full h-24 p-3 rounded-md bg-muted border border-input text-sm resize-none outline-none focus:ring-1 focus:ring-primary"
-        />
+        ></textarea>
       </div>
 
       <!-- 保存按钮 -->

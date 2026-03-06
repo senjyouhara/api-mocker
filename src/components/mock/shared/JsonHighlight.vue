@@ -20,7 +20,7 @@ const highlightedJson = computed(() => {
       // 键名（在冒号前的字符串）
       .replace(
         /<span class="json-string">"([^"]+)"<\/span>(\s*:)/g,
-        '<span class="json-key">"$1"</span>$2'
+        '<span class="json-key">"$1"</span>$2',
       )
       // 数字
       .replace(/\b(-?\d+\.?\d*)\b/g, '<span class="json-number">$1</span>')
@@ -31,7 +31,7 @@ const highlightedJson = computed(() => {
 </script>
 
 <template>
-  <pre class="json-highlight text-sm font-mono whitespace-pre-wrap" v-html="highlightedJson" />
+  <pre class="json-highlight text-sm font-mono whitespace-pre-wrap" v-html="highlightedJson"></pre>
 </template>
 
 <style scoped>

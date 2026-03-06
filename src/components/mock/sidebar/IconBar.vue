@@ -55,7 +55,7 @@ const toggleTheme = () => {
     </button>
 
     <!-- 占位，将主题切换按钮推到底部 -->
-    <div class="flex-1" />
+    <div class="flex-1"></div>
 
     <!-- 主题切换按钮 -->
     <button

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import {
   ChevronRight,
   Folder,
@@ -9,16 +9,20 @@ import {
   FolderPlus,
   GripVertical,
 } from 'lucide-vue-next';
-import draggable from 'vuedraggable';
+import VueDraggable from 'vuedraggable';
 import { useCollectionStore } from '@/stores/mock/collection';
 import { useRequestStore } from '@/stores/mock/request';
 import { useSettingsStore } from '@/stores/mock/settings';
 import { useMockRuleStore } from '@/stores/mock/rule';
 import { useHistoryStore } from '@/stores/mock/history';
 import type { TreeNode, ApiEndpoint } from '@/types/mock';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Button as UiButton } from '@/components/ui/button';
+import { Input as UiInput } from '@/components/ui/input';
+import {
+  Dialog as UiDialog,
+  DialogContent as UiDialogContent,
+  DialogHeader as UiDialogHeader,
+} from '@/components/ui/dialog';
 
 const props = withDefaults(
   defineProps<{
@@ -29,7 +33,7 @@ const props = withDefaults(
   {
     level: 0,
     draggable: false,
-  }
+  },
 );
 
 const store = useCollectionStore();
@@ -46,7 +50,7 @@ watch(
     if (val !== undefined) {
       expanded.value = val;
     }
-  }
+  },
 );
 
 // 子节点拖拽列表
@@ -164,12 +168,6 @@ const confirmEdit = () => {
 const cancelEdit = () => {
   showRenameDialog.value = false;
   editError.value = '';
-};
-
-// 删除分组
-const deleteGroup = () => {
-  closeMenu();
-  store.deleteGroup(props.node.id);
 };
 
 // 新建子分组
@@ -293,24 +291,24 @@ const getMethodColor = (method: string) => {
       @contextmenu="onContextMenu"
     >
       <!-- 拖拽手柄 -->
-      <GripVertical
+      <grip-vertical
         v-if="draggable"
         :size="12"
         class="drag-handle mr-1 text-foreground/40 opacity-60 group-hover:opacity-100 cursor-grab"
       />
 
       <!-- 展开箭头 -->
-      <ChevronRight
+      <chevron-right
         v-if="node.type === 'group'"
         :size="14"
         class="mr-1 transition-transform text-muted-foreground"
         :class="{ 'rotate-90': expanded }"
       />
-      <span v-else class="w-[14px] mr-1" />
+      <span v-else class="w-[14px] mr-1"></span>
 
       <!-- 图标/方法标签 -->
       <template v-if="node.type === 'group'">
-        <Folder :size="14" class="mr-1.5 text-primary" />
+        <folder :size="14" class="mr-1.5 text-primary" />
       </template>
       <template v-else>
         <span
@@ -329,13 +327,13 @@ const getMethodColor = (method: string) => {
             ? `${(node.data as ApiEndpoint).method} ${(node.data as ApiEndpoint).path}`
             : node.name
         "
-        >{{ node.name }}</span
+      >{{ node.name }}</span
       >
     </div>
 
     <!-- 子节点（支持拖拽） -->
     <div v-if="expanded && node.type === 'group'">
-      <draggable
+      <vue-draggable
         v-model="childList"
         item-key="id"
         group="tree"
@@ -344,13 +342,13 @@ const getMethodColor = (method: string) => {
         handle=".drag-handle"
       >
         <template #item="{ element }">
-          <TreeItem :node="element" :level="level + 1" :draggable="true" />
+          <tree-item :node="element" :level="level + 1" :draggable="true" />
         </template>
-      </draggable>
+      </vue-draggable>
     </div>
 
     <!-- 右键菜单 -->
-    <Teleport to="body">
+    <teleport to="body">
       <div
         v-if="showContextMenu"
         class="fixed z-50 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg py-1 min-w-32"
@@ -358,116 +356,116 @@ const getMethodColor = (method: string) => {
       >
         <!-- 分组菜单 -->
         <template v-if="node.type === 'group'">
-          <Button
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-foreground"
             @click="openAddEndpointDialog"
           >
-            <Plus :size="14" />
+            <plus :size="14" />
             新建接口
-          </Button>
-          <Button
+          </ui-button>
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-foreground"
             @click="openAddSubDialog"
           >
-            <FolderPlus :size="14" />
+            <folder-plus :size="14" />
             新建子分组
-          </Button>
-          <Button
+          </ui-button>
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-foreground"
             @click="startEdit"
           >
-            <Pencil :size="14" />
+            <pencil :size="14" />
             重命名
-          </Button>
-          <div class="border-t border-border my-1" />
-          <Button
+          </ui-button>
+          <div class="border-t border-border my-1"></div>
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-destructive"
             @click="deleteNode"
           >
-            <Trash2 :size="14" />
+            <trash2 :size="14" />
             删除
-          </Button>
+          </ui-button>
         </template>
         <!-- 接口菜单 -->
         <template v-else>
-          <Button
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-foreground"
             @click="startEdit"
           >
-            <Pencil :size="14" />
+            <pencil :size="14" />
             重命名
-          </Button>
-          <div class="border-t border-border my-1" />
-          <Button
+          </ui-button>
+          <div class="border-t border-border my-1"></div>
+          <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-destructive"
             @click="deleteNode"
           >
-            <Trash2 :size="14" />
+            <trash2 :size="14" />
             删除
-          </Button>
+          </ui-button>
         </template>
       </div>
-    </Teleport>
+    </teleport>
 
     <!-- 新建子分组对话框 -->
-    <Dialog v-model:open="showAddSubDialog">
-      <DialogContent class="w-80">
-        <DialogHeader>
+    <ui-dialog v-model:open="showAddSubDialog">
+      <ui-dialog-content class="w-80">
+        <ui-dialog-header>
           <h3 class="font-bold text-lg">新建子分组</h3>
-        </DialogHeader>
-        <Input
+        </ui-dialog-header>
+        <ui-input
           v-model="newSubGroupName"
           placeholder="请输入分组名称"
           @keyup.enter="confirmAddSubGroup"
         />
         <p v-if="addSubError" class="text-destructive text-sm mt-2">{{ addSubError }}</p>
         <div class="flex justify-end gap-2 mt-4">
-          <Button variant="outline" @click="showAddSubDialog = false">取消</Button>
-          <Button @click="confirmAddSubGroup">确定</Button>
+          <ui-button variant="outline" @click="showAddSubDialog = false">取消</ui-button>
+          <ui-button @click="confirmAddSubGroup">确定</ui-button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ui-dialog-content>
+    </ui-dialog>
 
     <!-- 新建接口对话框 -->
-    <Dialog v-model:open="showAddEndpointDialog">
-      <DialogContent class="w-80">
-        <DialogHeader>
+    <ui-dialog v-model:open="showAddEndpointDialog">
+      <ui-dialog-content class="w-80">
+        <ui-dialog-header>
           <h3 class="font-bold text-lg">新建接口</h3>
-        </DialogHeader>
-        <Input
+        </ui-dialog-header>
+        <ui-input
           v-model="newEndpointName"
           placeholder="请输入接口名称"
           @keyup.enter="confirmAddEndpoint"
         />
         <p v-if="addEndpointError" class="text-destructive text-sm mt-2">{{ addEndpointError }}</p>
         <div class="flex justify-end gap-2 mt-4">
-          <Button variant="outline" @click="showAddEndpointDialog = false">取消</Button>
-          <Button @click="confirmAddEndpoint">确定</Button>
+          <ui-button variant="outline" @click="showAddEndpointDialog = false">取消</ui-button>
+          <ui-button @click="confirmAddEndpoint">确定</ui-button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ui-dialog-content>
+    </ui-dialog>
 
     <!-- 重命名对话框 -->
-    <Dialog v-model:open="showRenameDialog">
-      <DialogContent class="w-80">
-        <DialogHeader>
+    <ui-dialog v-model:open="showRenameDialog">
+      <ui-dialog-content class="w-80">
+        <ui-dialog-header>
           <h3 class="font-bold text-lg">
             {{ node.type === 'group' ? '重命名分组' : '重命名接口' }}
           </h3>
-        </DialogHeader>
-        <Input v-model="editName" placeholder="请输入名称" @keyup.enter="confirmEdit" />
+        </ui-dialog-header>
+        <ui-input v-model="editName" placeholder="请输入名称" @keyup.enter="confirmEdit" />
         <p v-if="editError" class="text-destructive text-sm mt-2">{{ editError }}</p>
         <div class="flex justify-end gap-2 mt-4">
-          <Button variant="outline" @click="cancelEdit">取消</Button>
-          <Button @click="confirmEdit">确定</Button>
+          <ui-button variant="outline" @click="cancelEdit">取消</ui-button>
+          <ui-button @click="confirmEdit">确定</ui-button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ui-dialog-content>
+    </ui-dialog>
   </div>
 </template>

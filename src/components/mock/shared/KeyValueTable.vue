@@ -23,7 +23,7 @@ const props = withDefaults(
     keyPlaceholder: 'Key',
     valuePlaceholder: 'Value',
     showEnabled: true,
-  }
+  },
 );
 
 const emit = defineEmits<{
@@ -46,7 +46,7 @@ watch(
     if (isSyncing) return;
     items.value = [...newVal];
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 同步到父组件
@@ -54,7 +54,7 @@ const syncToParent = () => {
   isSyncing = true;
   emit(
     'update:modelValue',
-    items.value.map((item) => ({ ...item }))
+    items.value.map((item) => ({ ...item })),
   );
   // 下一个 tick 后重置标记
   setTimeout(() => {

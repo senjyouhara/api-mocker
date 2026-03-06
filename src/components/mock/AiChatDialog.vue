@@ -85,7 +85,7 @@ const insertToEditor = (content: string) => {
   <Transition name="slide">
     <div v-if="open" class="fixed inset-0 z-50">
       <!-- 遮罩层 -->
-      <div class="absolute inset-0 bg-black/50" @click="emit('update:open', false)" />
+      <div class="absolute inset-0 bg-black/50" @click="emit('update:open', false)"></div>
       <!-- 弹框 -->
       <div
         class="absolute bottom-16 left-16 w-96 h-[500px] bg-card border border-border rounded-lg shadow-xl flex flex-col"
@@ -97,7 +97,11 @@ const insertToEditor = (content: string) => {
             <span class="text-sm font-medium">AI 助手</span>
           </div>
           <div class="flex items-center gap-1">
-            <Button size="sm" variant="ghost" @click="clearMessages" title="清空对话">
+            <Button
+              size="sm"
+              variant="ghost"
+              title="清空对话"
+              @click="clearMessages">
               <Trash2 :size="14" />
             </Button>
             <Button size="sm" variant="ghost" @click="emit('update:open', false)">
@@ -218,7 +222,7 @@ const insertToEditor = (content: string) => {
               class="flex-1 h-16 px-3 py-2 text-sm bg-muted rounded-md resize-none outline-none focus:ring-1 focus:ring-primary"
               :disabled="!settingsStore.isApiConfigured || loading"
               @keydown.enter.exact.prevent="handleSend"
-            />
+            ></textarea>
             <Button
               size="sm"
               class="h-16 px-3"

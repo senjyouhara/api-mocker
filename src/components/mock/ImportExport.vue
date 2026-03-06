@@ -188,7 +188,12 @@ const onFileSelected = async (event: Event) => {
       </Button>
 
       <!-- 隐藏的文件输入框 -->
-      <input ref="fileInput" type="file" accept=".json" class="hidden" @change="onFileSelected" />
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".json"
+        class="hidden"
+        @change="onFileSelected" />
     </div>
 
     <p v-if="error" class="text-sm text-destructive">{{ error }}</p>

@@ -120,7 +120,7 @@ jobs:
             exit 1
           }
 
-          $zipName = "$productName_$version_x64-portable.zip"
+          $zipName = "${productName}_${version}_x64-portable.zip"
           mkdir portable -Force
           Copy-Item $exe.FullName portable\
           Compress-Archive portable $zipName -Force

@@ -64,14 +64,6 @@
 #### Mock.js 支持
 
 - 完整 Mock.js 语法支持
-- 文本类占位符：@cname、@name、@ctitle、@csentence 等
-- 数字类占位符：@integer、@float、@natural、@boolean
-- 日期类占位符：@date、@time、@datetime、@now
-- 网络类占位符：@email、@url、@ip、@domain
-- 其他占位符：@id、@guid、@image、@color
-- 数组生成：`"list|5-10": [{}]` 语法
-- JSON 注释支持：支持 `//` 和 `/* */` 注释
-- 宽松 JSON 解析：支持单引号、尾随逗号、无引号键名
 
 #### 环境变量
 

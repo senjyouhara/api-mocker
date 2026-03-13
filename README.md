@@ -25,6 +25,9 @@
   - 每个接口支持多规则，单接口同一时间仅 1 条激活
   - 支持状态码、延迟、响应头、响应体编辑
   - 内置 Monaco 编辑器（含展开编辑、格式化）
+  - 支持 JavaScript 函数模式：根据请求数据（`query`/`body`/`path`）动态返回不同响应
+  - 使用 `js-beautify` 格式化 JSON 和 JavaScript 代码
+  - 使用 `acorn` 对 JavaScript 代码进行实时语法校验
 - **Mock.js 支持**
   - 响应体支持 Mock.js 模板生成
   - 支持 JSON 注释与宽松 JSON（如单引号、尾随逗号、未加引号键名）
@@ -74,8 +77,9 @@ pnpm tauri build
 
 | 命令               | 说明                                              |
 | ------------------ | ------------------------------------------------- |
+| `pnpm dev`         | 启动完整桌面开发环境（推荐）                      |
 | `pnpm start`       | 仅启动前端 Vite 开发服务器（不含 Tauri 后端能力） |
-| `pnpm tauri dev`   | 启动完整桌面开发环境（推荐）                      |
+| `pnpm tauri dev`   | 启动完整桌面开发环境                              |
 | `pnpm build`       | 构建前端静态资源                                  |
 | `pnpm tauri build` | 构建桌面安装包                                    |
 | `pnpm lint`        | ESLint（带 `--fix`）                              |

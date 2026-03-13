@@ -1,3 +1,37 @@
+## v0.2.0
+
+### 新增功能
+
+#### Mock 规则 JavaScript 函数模式
+
+- 支持 JavaScript 函数模式，可根据请求数据动态返回响应
+- 函数接收 `{ query, body, path }` 参数，分别对应查询参数、请求体和路径参数
+- 支持 `formData` 类型请求体解析
+- 自动提取路径参数（如 `/api/users/:id` 中的 `id`）
+
+#### 代码格式化与验证
+
+- 使用 `js-beautify` 替换原有格式化功能，支持 JSON 和 JavaScript 代码格式化
+- 使用 `acorn` 对 JavaScript 代码进行实时语法校验，显示错误行号和详细信息
+- 格式化按钮在 JSON 和 JavaScript 模式下均可使用
+
+#### AI 助手改进
+
+- 改进错误处理，针对 401（API Key 无效）和 402（余额不足）显示友好错误提示
+- 修复 CSP 配置，允许 AI 助手访问外部 HTTPS API
+
+### 优化改进
+
+- 添加 `pnpm dev` 命令，启动开发模式时忽略窗口关闭的退出码错误
+- Mock 服务器支持 `application/x-www-form-urlencoded` 请求体解析
+- JavaScript 模式下跳过 JSON 格式验证，避免误报错误
+
+### 技术栈更新
+
+- 新增依赖：`acorn@^8.16.0`、`js-beautify@^1.15.4`、`@types/js-beautify@^1.14.3`
+
+---
+
 ## v0.1.0
 
 ### api-mocker 基于 `Tauri + Vue 3` 的本地 API Mock 与请求调试工具，面向前端联调、接口演示和本地自测场景。

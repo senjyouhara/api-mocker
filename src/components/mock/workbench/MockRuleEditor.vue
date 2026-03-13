@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/stores/mock/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MonacoEditor from '@/components/mock/shared/MonacoEditor.vue';
-import { formatJson, validateJson } from '@/utils/mockjs';
+import { formatJson, formatJavaScript, validateJson, validateJavaScript } from '@/utils/mockjs';
 
 const collectionStore = useCollectionStore();
 const ruleStore = useMockRuleStore();
@@ -91,9 +91,15 @@ const toggleActive = (id: string) => {
 // 格式化响应体
 const formatBody = () => {
   if (!selectedRule.value) return;
-  const formatted = formatJson(selectedRule.value.body);
-  ruleStore.updateRule(selectedRule.value.id, { body: formatted });
-  validateBody(formatted);
+  if (selectedRule.value.bodyType === 'javascript') {
+    const formatted = formatJavaScript(selectedRule.value.body);
+    ruleStore.updateRule(selectedRule.value.id, { body: formatted });
+    validateJsBody(formatted);
+  } else {
+    const formatted = formatJson(selectedRule.value.body);
+    ruleStore.updateRule(selectedRule.value.id, { body: formatted });
+    validateBody(formatted);
+  }
 };
 
 // 验证响应体 JSON
@@ -102,11 +108,21 @@ const validateBody = (body: string) => {
   jsonError.value = result.valid ? null : result.error || '无效的 JSON 格式';
 };
 
+// 验证响应体 JavaScript
+const validateJsBody = (body: string) => {
+  const result = validateJavaScript(body);
+  jsonError.value = result.valid ? null : result.error || '无效的 JavaScript 语法';
+};
+
 // 更新响应体并验证
 const updateBody = (body: string) => {
   if (!selectedRule.value) return;
   ruleStore.updateRule(selectedRule.value.id, { body });
-  validateBody(body);
+  if (selectedRule.value.bodyType === 'javascript') {
+    validateJsBody(body);
+  } else {
+    validateBody(body);
+  }
 };
 
 // 监听选中规则变化，重新验证
@@ -114,13 +130,38 @@ watch(
   selectedRule,
   (rule) => {
     if (rule) {
-      validateBody(rule.body);
+      if (rule.bodyType === 'javascript') {
+        validateJsBody(rule.body);
+      } else {
+        validateBody(rule.body);
+      }
     } else {
       jsonError.value = null;
     }
   },
   { immediate: true },
 );
+
+// 切换 bodyType 时提供初始模板
+const switchBodyType = (type: 'json' | 'javascript') => {
+  if (!selectedRule.value) return;
+
+  const currentBody = selectedRule.value.body.trim();
+
+  // 切换到 JavaScript 且当前为空或为 JSON
+  if (type === 'javascript' && (!currentBody || currentBody.startsWith('{'))) {
+    const template = `({ query, body, path }) => {
+  // 根据请求数据返回不同响应
+  if (body.type === 1) {
+    return { code: 0, message: 'Type 1', data: body };
+  }
+  return { code: 0, message: 'Default', data: null };
+}`;
+    ruleStore.updateRule(selectedRule.value.id, { bodyType: type, body: template });
+  } else {
+    ruleStore.updateRule(selectedRule.value.id, { bodyType: type });
+  }
+};
 
 // 监听 AI 生成的待插入内容
 watch(
@@ -227,8 +268,43 @@ watch(
 
         <!-- 响应体 -->
         <div class="flex-1 min-h-0 flex flex-col">
+          <!-- 响应体类型选择 -->
+          <div class="flex items-center gap-2 mb-2 shrink-0">
+            <label class="text-sm text-muted-foreground">响应体类型</label>
+            <div class="flex gap-1">
+              <button
+                class="px-2 py-1 text-xs rounded"
+                :class="
+                  selectedRule.bodyType === 'json'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
+                @click="switchBodyType('json')"
+              >
+                JSON
+              </button>
+              <button
+                class="px-2 py-1 text-xs rounded"
+                :class="
+                  selectedRule.bodyType === 'javascript'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                "
+                @click="switchBodyType('javascript')"
+              >
+                JavaScript
+              </button>
+            </div>
+          </div>
+
           <div class="flex items-center justify-between mb-1 shrink-0">
-            <label class="text-sm text-muted-foreground">响应体 (支持 Mock.js 语法)</label>
+            <label class="text-sm text-muted-foreground">
+              {{
+                selectedRule.bodyType === 'javascript'
+                  ? '响应体 (函数接收 { query, body, path })'
+                  : '响应体 (支持 Mock.js 语法)'
+              }}
+            </label>
             <div class="flex items-center gap-1">
               <Button
                 size="sm"
@@ -252,7 +328,7 @@ watch(
           >
             <MonacoEditor
               :model-value="selectedRule.body"
-              language="json"
+              :language="selectedRule.bodyType === 'javascript' ? 'javascript' : 'json'"
               @update:model-value="updateBody($event)"
             />
           </div>
@@ -293,7 +369,7 @@ watch(
       <div class="flex-1 min-h-0 overflow-hidden">
         <MonacoEditor
           :model-value="selectedRule.body"
-          language="json"
+          :language="selectedRule.bodyType === 'javascript' ? 'javascript' : 'json'"
           @update:model-value="updateBody($event)"
         />
       </div>

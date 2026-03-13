@@ -1,7 +1,7 @@
 {
   "name": "api-mocker",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "基于 `Tauri + Vue 3` 的本地 API Mock 与请求调试工具，面向前端联调、接口演示和本地自测工具",
   "scripts": {
     "start": "vite",
@@ -11,6 +11,7 @@
     "format": "prettier --write \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,json,css,scss,less,html,md}\"",
     "prepare": "husky install",
     "tauri": "tauri",
+    "dev": "tauri dev || exit 0",
     "lint-staged": "lint-staged"
   },
   "gitHooks": {
@@ -31,9 +32,11 @@
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-opener": "^2.2.7",
     "@vueuse/core": "^14.1.0",
+    "acorn": "^8.16.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
+    "js-beautify": "^1.15.4",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.563.0",
     "mockjs": "^1.1.0",
@@ -50,6 +53,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@tauri-apps/cli": "2.5.0",
+    "@types/js-beautify": "^1.14.3",
     "@types/mockjs": "^1.0.10",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.21",

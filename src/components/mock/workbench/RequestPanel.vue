@@ -233,10 +233,10 @@ const sendRequest = async () => {
     return;
   }
 
-  // 检查 Mock 规则 JSON 格式错误
+  // 检查 Mock 规则 JSON 格式错误（仅 JSON 模式）
   if (store.currentEndpointId) {
     const mockRule = mockRuleStore.matchRule(store.currentEndpointId);
-    if (mockRule) {
+    if (mockRule && mockRule.bodyType !== 'javascript') {
       const mockJsonResult = validateJson(mockRule.body);
       if (!mockJsonResult.valid) {
         toast({
@@ -251,6 +251,42 @@ const sendRequest = async () => {
 
   store.isLoading = true;
 
+  // 构建请求 body 对象（用于 JavaScript 模式）
+  const buildRequestBody = () => {
+    if (store.bodyType === 'json') {
+      try {
+        return JSON.parse(store.body || '{}');
+      } catch {
+        return {};
+      }
+    } else if (store.bodyType === 'form') {
+      const result: Record<string, string> = {};
+      store.formData
+        .filter((f) => f.enabled && f.key)
+        .forEach((f) => {
+          result[f.key] = f.value;
+        });
+      return result;
+    }
+    return {};
+  };
+
+  // 提取路径参数
+  const extractPathParams = (pattern: string, path: string): Record<string, string> => {
+    const params: Record<string, string> = {};
+    const patternParts = pattern.split('/');
+    const pathParts = path.split('?')[0].split('/');
+
+    if (patternParts.length === pathParts.length) {
+      patternParts.forEach((p, i) => {
+        if (p.startsWith(':')) {
+          params[p.slice(1)] = pathParts[i];
+        }
+      });
+    }
+    return params;
+  };
+
   try {
     // 检查是否有匹配的 Mock 规则
     if (store.currentEndpointId) {
@@ -261,8 +297,31 @@ const sendRequest = async () => {
           await new Promise((resolve) => setTimeout(resolve, mockRule.delay));
         }
 
-        // 返回 Mock 数据（支持 mockjs 表达式）
-        const mockBody = parseMockTemplate(mockRule.body);
+        // 返回 Mock 数据
+        let mockBody: string;
+        if (mockRule.bodyType === 'javascript') {
+          // JavaScript 函数模式
+          try {
+            const fn = eval(`(${mockRule.body})`);
+            const endpoint = collectionStore.activeEndpoint;
+            const pathParams = endpoint ? extractPathParams(endpoint.path, store.url) : {};
+            const requestData = {
+              query: store.paramsRecord,
+              body: buildRequestBody(),
+              path: pathParams,
+            };
+            const result = fn(requestData);
+            mockBody = JSON.stringify(result, null, 2);
+          } catch (e) {
+            mockBody = JSON.stringify({
+              error: 'JavaScript 执行失败',
+              message: (e as Error).message,
+            });
+          }
+        } else {
+          // JSON 模式（支持 Mock.js）
+          mockBody = parseMockTemplate(mockRule.body);
+        }
         store.response = {
           statusCode: mockRule.statusCode,
           headers: mockRule.headers,

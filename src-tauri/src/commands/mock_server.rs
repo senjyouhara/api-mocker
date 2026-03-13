@@ -33,6 +33,15 @@ pub struct MockRule {
 pub struct MockRequestEvent {
     pub rule_id: String,
     pub template: String,
+    pub request_data: RequestContext,
+}
+
+/// 请求上下文（传给前端）
+#[derive(Debug, Clone, Serialize)]
+pub struct RequestContext {
+    pub query: HashMap<String, String>,
+    pub body: HashMap<String, serde_json::Value>,
+    pub path: HashMap<String, String>,
 }
 
 /// Mock 服务器状态
@@ -104,9 +113,88 @@ fn path_matches(pattern: &str, path: &str) -> bool {
     })
 }
 
+/// 解析 query string 为 HashMap
+fn parse_query_string(query: &str) -> HashMap<String, String> {
+    query.split('&')
+        .filter(|s| !s.is_empty())
+        .filter_map(|pair| {
+            let mut parts = pair.splitn(2, '=');
+            let key = parts.next()?;
+            let value = parts.next().unwrap_or("");
+            Some((key.to_string(), value.to_string()))
+        })
+        .collect()
+}
+
+/// 提取请求数据
+async fn extract_request_data(req: &mut Request<Incoming>) -> RequestData {
+    use http_body_util::BodyExt;
+
+    // 提取 query params
+    let query_params = req.uri()
+        .query()
+        .map(|q| parse_query_string(q))
+        .unwrap_or_default();
+
+    // 先提取 Content-Type（避免借用冲突）
+    let content_type = req.headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+
+    // 提取 body
+    let body_bytes = req.body_mut().collect().await.ok()
+        .and_then(|b| Some(b.to_bytes()))
+        .unwrap_or_default();
+
+    let body_str = String::from_utf8_lossy(&body_bytes).to_string();
+
+    // 根据 Content-Type 解析 body
+    let body_json: HashMap<String, serde_json::Value> = if content_type.contains("application/x-www-form-urlencoded") {
+        parse_query_string(&body_str)
+            .into_iter()
+            .map(|(k, v)| (k, serde_json::Value::String(v)))
+            .collect()
+    } else if content_type.contains("application/json") || body_str.trim().starts_with('{') {
+        serde_json::from_str(&body_str).unwrap_or_default()
+    } else {
+        HashMap::new()
+    };
+
+    RequestData {
+        query_params,
+        body_json,
+    }
+}
+
+/// 提取路径参数
+fn extract_path_params(pattern: &str, path: &str) -> HashMap<String, String> {
+    let mut params = HashMap::new();
+    let pattern_parts: Vec<&str> = pattern.split('/').collect();
+    let path_parts: Vec<&str> = path.split('/').collect();
+
+    if pattern_parts.len() == path_parts.len() {
+        for (p, actual) in pattern_parts.iter().zip(path_parts.iter()) {
+            if p.starts_with(':') {
+                let key = p.trim_start_matches(':');
+                params.insert(key.to_string(), actual.to_string());
+            }
+        }
+    }
+
+    params
+}
+
+#[derive(Debug)]
+struct RequestData {
+    query_params: HashMap<String, String>,
+    body_json: HashMap<String, serde_json::Value>,
+}
+
 /// 处理 HTTP 请求
 async fn handle_request(
-    req: Request<Incoming>,
+    mut req: Request<Incoming>,
     state: Arc<MockServerState>,
 ) -> Result<Response<Full<Bytes>>, hyper::Error> {
     let method = req.method().clone();
@@ -114,18 +202,29 @@ async fn handle_request(
 
     println!("收到请求: {} {}", method, path);
 
+    // 提取请求数据
+    let request_data = extract_request_data(&mut req).await;
+
     let matched_rule = {
         let rules = state.rules.read();
         match_rule(&rules, &method, &path)
     };
 
     if let Some(rule) = matched_rule {
+        // 提取路径参数
+        let path_params = extract_path_params(&rule.path, &path);
+
         // 发送事件到前端处理 Mock.js
         let app_handle_opt = state.app_handle.read().clone();
         if let Some(app_handle) = app_handle_opt {
             let event = MockRequestEvent {
                 rule_id: rule.id.clone(),
                 template: rule.body.clone(),
+                request_data: RequestContext {
+                    query: request_data.query_params.clone(),
+                    body: request_data.body_json.clone(),
+                    path: path_params.clone(),
+                },
             };
             let _ = app_handle.emit("mock-request", event);
 

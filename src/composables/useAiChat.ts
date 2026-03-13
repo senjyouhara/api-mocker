@@ -71,7 +71,23 @@ export function useAiChat() {
       });
 
       if (!response.ok) {
-        throw new Error(`API 请求失败: ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        let errorMsg = `API 请求失败 (${response.status})`;
+
+        if (response.status === 402) {
+          errorMsg = 'API 余额不足，请充值后重试';
+        } else if (response.status === 401) {
+          errorMsg = 'API Key 无效，请检查配置';
+        } else if (errorText) {
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMsg = errorJson.error?.message || errorJson.message || errorMsg;
+          } catch {
+            // 忽略 JSON 解析错误
+          }
+        }
+
+        throw new Error(errorMsg);
       }
 
       const reader = response.body?.getReader();

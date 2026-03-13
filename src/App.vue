@@ -2,25 +2,46 @@
 import { onMounted, onUnmounted } from 'vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
-import { useAppStore } from './stores/app';
+import { useMockRuleStore } from './stores/mock/rule';
 import { Toaster } from '@/components/ui/toast';
 import { parseMockTemplate } from '@/utils/mockjs';
 
-const store = useAppStore();
+const ruleStore = useMockRuleStore();
 
 let unlisten: UnlistenFn | null = null;
 
 onMounted(async () => {
   // 监听 Mock 请求事件
   unlisten = await listen('mock-request', async (event) => {
-    const { rule_id, template } = event.payload as { rule_id: string; template: string };
+    const { rule_id, template, request_data } = event.payload as {
+      rule_id: string;
+      template: string;
+      request_data: {
+        query: Record<string, string>;
+        body: Record<string, any>;
+        path: Record<string, string>;
+      };
+    };
+
     try {
-      const processedBody = parseMockTemplate(template);
+      // 查找规则，判断 bodyType
+      const rule = ruleStore.rules.find((r) => r.id === rule_id);
+      let processedBody: string;
+
+      if (rule?.bodyType === 'javascript') {
+        // JavaScript 函数模式
+        const fn = eval(`(${template})`);
+        const result = fn(request_data);
+        processedBody = JSON.stringify(result, null, 2);
+      } else {
+        // JSON 模式（支持 Mock.js）
+        processedBody = parseMockTemplate(template);
+      }
+
       await invoke('update_rule_body', { ruleId: rule_id, body: processedBody });
     } catch (e) {
-      // 解析失败时返回错误 JSON
       const errorBody = JSON.stringify({
-        error: 'Mock 模板解析失败',
+        error: 'Mock 模板处理失败',
         message: (e as Error).message,
       });
       await invoke('update_rule_body', { ruleId: rule_id, body: errorBody });

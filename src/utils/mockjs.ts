@@ -1,4 +1,6 @@
 import Mock from 'mockjs';
+import { js_beautify } from 'js-beautify';
+import { parse } from 'acorn';
 
 /**
  * 移除 JSON 字符串中的注释
@@ -140,7 +142,7 @@ export function parseMockTemplate(template: string): string {
     const cleanTemplate = removeJsonComments(template);
 
     // 尝试用 eval 解析（支持 function 和正则）
-     
+
     const parsed = eval(`(${cleanTemplate})`);
     const result = Mock.mock(parsed);
     return JSON.stringify(result, null, 2);
@@ -169,12 +171,48 @@ export function parseMockTemplate(template: string): string {
  */
 export function formatJson(jsonStr: string): string {
   try {
-    // 先移除注释，再规范化
     const cleanJson = normalizeJson(removeJsonComments(jsonStr));
     const parsed = JSON.parse(cleanJson);
-    return JSON.stringify(parsed, null, 2);
+    return js_beautify(JSON.stringify(parsed), { indent_size: 2 });
   } catch {
     return jsonStr;
+  }
+}
+
+/**
+ * 格式化 JavaScript 代码
+ * @param jsCode JavaScript 代码字符串
+ * @returns 格式化后的 JavaScript 代码
+ */
+export function formatJavaScript(jsCode: string): string {
+  try {
+    return js_beautify(jsCode, { indent_size: 2 });
+  } catch {
+    return jsCode;
+  }
+}
+
+/**
+ * 验证 JavaScript 代码是否有效
+ * @param jsCode JavaScript 代码字符串
+ * @returns 验证结果，valid 为 true 表示有效，否则 error 包含错误信息和行号
+ */
+export function validateJavaScript(jsCode: string): {
+  valid: boolean;
+  error?: string;
+  line?: number;
+} {
+  if (!jsCode.trim()) {
+    return { valid: true };
+  }
+
+  try {
+    parse(jsCode, { ecmaVersion: 2020 });
+    return { valid: true };
+  } catch (e: any) {
+    const line = e.loc?.line;
+    const errorMsg = line ? `第 ${line} 行: ${e.message}` : e.message;
+    return { valid: false, error: errorMsg, line };
   }
 }
 

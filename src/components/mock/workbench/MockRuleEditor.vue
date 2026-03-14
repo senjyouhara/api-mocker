@@ -142,25 +142,22 @@ watch(
   { immediate: true },
 );
 
-// 切换 bodyType 时提供初始模板
-const switchBodyType = (type: 'json' | 'javascript') => {
-  if (!selectedRule.value) return;
-
-  const currentBody = selectedRule.value.body.trim();
-
-  // 切换到 JavaScript 且当前为空或为 JSON
-  if (type === 'javascript' && (!currentBody || currentBody.startsWith('{'))) {
-    const template = `({ query, body, path }) => {
+// 各类型的默认模板
+const defaultTemplates: Record<'json' | 'javascript', string> = {
+  json: '{\n  "code": 0,\n  "message": "success",\n  "data": null\n}',
+  javascript: `({ query, body, path }) => {
   // 根据请求数据返回不同响应
   if (body.type === 1) {
     return { code: 0, message: 'Type 1', data: body };
   }
   return { code: 0, message: 'Default', data: null };
-}`;
-    ruleStore.updateRule(selectedRule.value.id, { bodyType: type, body: template });
-  } else {
-    ruleStore.updateRule(selectedRule.value.id, { bodyType: type });
-  }
+}`,
+};
+
+// 切换 bodyType 时重置为默认模板
+const switchBodyType = (type: 'json' | 'javascript') => {
+  if (!selectedRule.value || selectedRule.value.bodyType === type) return;
+  ruleStore.updateRule(selectedRule.value.id, { bodyType: type, body: defaultTemplates[type] });
 };
 
 // 监听 AI 生成的待插入内容

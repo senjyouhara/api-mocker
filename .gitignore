@@ -25,3 +25,6 @@ dist-ssr
 .claude
 .ace-tool
 nul
+
+src/auto-imports.d.ts
+src/components.d.ts

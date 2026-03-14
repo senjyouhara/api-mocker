@@ -1,6 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import * as monaco from 'monaco-editor';
+// 按需导入 Monaco 核心 + javascript 语法高亮
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution';
+
+// 手动注册 JSON 语言（避免引入 worker）
+import { createTokenizationSupport } from 'monaco-editor/esm/vs/language/json/tokenization';
+
+monaco.languages.register({
+  id: 'json',
+  extensions: ['.json'],
+  aliases: ['JSON', 'json'],
+  mimetypes: ['application/json'],
+});
+monaco.languages.setTokensProvider('json', createTokenizationSupport(false));
 
 // 禁用 Monaco 的 worker（使用同步模式）
 const monacoGlobal = globalThis as typeof globalThis & {

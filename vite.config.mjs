@@ -6,10 +6,26 @@ import Components from 'unplugin-vue-components/vite';
 
 const host = process.env.TAURI_DEV_HOST;
 
+// 排除 Monaco Editor 不需要的 worker 文件
+const monacoWorkerNoop = () => ({
+  name: 'monaco-worker-noop',
+  resolveId(id) {
+    if (/monaco-editor.*worker/i.test(id)) {
+      return '\0monaco-worker-noop';
+    }
+  },
+  load(id) {
+    if (id === '\0monaco-worker-noop') {
+      return 'export default {};';
+    }
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [
     vue(),
+    monacoWorkerNoop(),
     // 自动导入 Vue API
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
@@ -32,7 +48,6 @@ export default defineConfig(async () => ({
   // Monaco Editor 优化
   optimizeDeps: {
     include: ['monaco-editor'],
-    exclude: ['monaco-editor/esm/vs/language/json/json.worker'],
   },
 
   // 构建优化
@@ -42,6 +57,7 @@ export default defineConfig(async () => ({
     rollupOptions: {
       output: {
         manualChunks: {
+          'common-vendor': ['acorn', 'dayjs', 'mockjs'],
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'ui-vendor': ['lucide-vue-next'],
         },

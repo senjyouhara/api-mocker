@@ -306,6 +306,52 @@ export const useCollectionStore = defineStore(
       }
     };
 
+    // 复制接口
+    const duplicateEndpoint = (endpointId: string) => {
+      const source = endpoints.value.find((e) => e.id === endpointId);
+      if (!source) return null;
+
+      // 生成复制名称：原名-复制[N]
+      const baseName = source.name.replace(/-复制\[\d+\]$/, '');
+      const existingCopies = endpoints.value.filter(
+        (e) =>
+          e.groupId === source.groupId &&
+          new RegExp(`^${baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-复制\\[\\d+\\]$`).test(
+            e.name,
+          ),
+      );
+      const nextNum =
+        existingCopies.length > 0
+          ? Math.max(
+              ...existingCopies.map((e) => {
+                const match = e.name.match(/-复制\[(\d+)\]$/);
+                return match ? Number(match[1]) : 0;
+              }),
+            ) + 1
+          : 1;
+      const newName = `${baseName}-复制[${nextNum}]`;
+
+      const now = Date.now();
+      const newEndpoint: ApiEndpoint = {
+        id: crypto.randomUUID(),
+        groupId: source.groupId,
+        name: newName,
+        method: source.method,
+        path: source.path,
+        description: source.description,
+        order: endpoints.value.filter((e) => e.groupId === source.groupId).length,
+        createdAt: now,
+        updatedAt: now,
+        params: source.params ? JSON.parse(JSON.stringify(source.params)) : undefined,
+        headers: source.headers ? JSON.parse(JSON.stringify(source.headers)) : undefined,
+        bodyType: source.bodyType,
+        body: source.body,
+        formData: source.formData ? JSON.parse(JSON.stringify(source.formData)) : undefined,
+      };
+      endpoints.value.push(newEndpoint);
+      return { source, newEndpoint };
+    };
+
     // 移动接口到新分组
     const moveEndpoint = (endpointId: string, newGroupId: string) => {
       const endpoint = endpoints.value.find((e) => e.id === endpointId);
@@ -338,6 +384,7 @@ export const useCollectionStore = defineStore(
       updateGroupOrder,
       updateEndpointOrder,
       moveGroup,
+      duplicateEndpoint,
       moveEndpoint,
     };
   },

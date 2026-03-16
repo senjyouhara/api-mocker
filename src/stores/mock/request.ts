@@ -114,7 +114,7 @@ export const useRequestStore = defineStore('request', () => {
   };
 
   // 从接口加载数据
-  const loadFromEndpoint = (endpoint: ApiEndpoint) => {
+  const loadFromEndpoint = async (endpoint: ApiEndpoint) => {
     currentEndpointId.value = endpoint.id;
     method.value = endpoint.method;
     url.value = endpoint.path;
@@ -144,7 +144,17 @@ export const useRequestStore = defineStore('request', () => {
       formData.value = [];
     }
 
-    response.value = null;
+    // 检查是否有历史记录，如果有则加载最近一次的响应
+    const { useHistoryStore } = await import('./history');
+    const historyStore = useHistoryStore();
+    const endpointHistories = historyStore.histories.filter((h) => h.endpointId === endpoint.id);
+    if (endpointHistories.length > 0) {
+      // 按时间倒序排序，取最新的一条
+      const latestHistory = endpointHistories.sort((a, b) => b.createdAt - a.createdAt)[0];
+      response.value = latestHistory.response || null;
+    } else {
+      response.value = null;
+    }
   };
 
   // 生成唯一 ID

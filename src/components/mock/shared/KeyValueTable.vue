@@ -45,8 +45,17 @@ watch(
   (newVal) => {
     if (isSyncing) return;
     items.value = [...newVal];
+    // 同步后如果为空，补一个本地空行（不回写父组件）
+    if (items.value.length === 0) {
+      items.value.push({
+        id: generateId(),
+        key: '',
+        value: '',
+        enabled: true,
+      });
+    }
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 
 // 同步到父组件
@@ -90,11 +99,6 @@ const updateRow = (id: string, field: 'key' | 'value' | 'enabled', value: string
     syncToParent();
   }
 };
-
-// 初始化时如果为空，添加一行
-if (items.value.length === 0) {
-  addRow();
-}
 </script>
 
 <template>

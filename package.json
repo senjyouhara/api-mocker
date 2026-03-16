@@ -1,7 +1,7 @@
 {
   "name": "api-mocker",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "基于 `Tauri + Vue 3` 的本地 API Mock 与请求调试工具，面向前端联调、接口演示和本地自测工具",
   "scripts": {
     "start": "vite",

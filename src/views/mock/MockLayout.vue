@@ -45,7 +45,7 @@ onMounted(async () => {
   if (collectionStore.activeEndpointId) {
     const endpoint = collectionStore.activeEndpoint;
     if (endpoint) {
-      requestStore.loadFromEndpoint(endpoint);
+      await requestStore.loadFromEndpoint(endpoint);
     }
   }
 

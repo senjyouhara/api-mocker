@@ -8,6 +8,7 @@ import {
   Trash2,
   FolderPlus,
   GripVertical,
+  Copy,
 } from 'lucide-vue-next';
 import VueDraggable from 'vuedraggable';
 import { useCollectionStore } from '@/stores/mock/collection';
@@ -202,7 +203,7 @@ const openAddEndpointDialog = () => {
   expanded.value = true;
 };
 
-const confirmAddEndpoint = () => {
+const confirmAddEndpoint = async () => {
   const name = newEndpointName.value.trim();
   if (!name) {
     addEndpointError.value = '请输入接口名称';
@@ -217,7 +218,7 @@ const confirmAddEndpoint = () => {
     showAddEndpointDialog.value = false;
     // 切换到新创建的接口
     store.setActiveEndpoint(endpoint.id);
-    requestStore.loadFromEndpoint(endpoint);
+    await requestStore.loadFromEndpoint(endpoint);
     settingsStore.activeMainTab = 'request';
   } catch (e) {
     addEndpointError.value = (e as Error).message;
@@ -225,19 +226,19 @@ const confirmAddEndpoint = () => {
 };
 
 // 点击节点
-const onNodeClick = () => {
+const onNodeClick = async () => {
   if (props.node.type === 'group') {
     toggle();
   } else {
     store.setActiveEndpoint(props.node.id);
-    requestStore.loadFromEndpoint(props.node.data as ApiEndpoint);
+    await requestStore.loadFromEndpoint(props.node.data as ApiEndpoint);
     // 切换到请求调试 Tab
     settingsStore.activeMainTab = 'request';
   }
 };
 
 // 删除节点
-const deleteNode = () => {
+const deleteNode = async () => {
   closeMenu();
   if (props.node.type === 'group') {
     // 删除分组，返回被删除的接口 ID 列表
@@ -257,11 +258,41 @@ const deleteNode = () => {
   if (store.activeEndpointId) {
     const newActiveEndpoint = store.activeEndpoint;
     if (newActiveEndpoint) {
-      requestStore.loadFromEndpoint(newActiveEndpoint);
+      await requestStore.loadFromEndpoint(newActiveEndpoint);
     }
   } else {
     requestStore.reset();
   }
+};
+
+// 复制接口
+const duplicateNode = async () => {
+  closeMenu();
+  if (props.node.type !== 'endpoint') return;
+
+  const result = store.duplicateEndpoint(props.node.id);
+  if (!result) return;
+
+  const { source, newEndpoint } = result;
+
+  // 复制关联的 mock 规则
+  const sourceRules = mockRuleStore.rules.filter((r) => r.endpointId === source.id);
+  sourceRules.forEach((rule) => {
+    const newRule = mockRuleStore.addRule(newEndpoint.id, rule.name, rule.method, rule.path);
+    mockRuleStore.updateRule(newRule.id, {
+      delay: rule.delay,
+      statusCode: rule.statusCode,
+      headers: { ...rule.headers },
+      bodyType: rule.bodyType,
+      body: rule.body,
+      active: rule.active,
+    });
+  });
+
+  // 切换到新复制的接口
+  store.setActiveEndpoint(newEndpoint.id);
+  await requestStore.loadFromEndpoint(newEndpoint);
+  settingsStore.activeMainTab = 'request';
 };
 
 // 获取接口方法颜色
@@ -392,6 +423,14 @@ const getMethodColor = (method: string) => {
         </template>
         <!-- 接口菜单 -->
         <template v-else>
+          <ui-button
+            variant="ghost"
+            class="w-full justify-start h-8 px-3 text-foreground"
+            @click="duplicateNode"
+          >
+            <copy :size="14" />
+            复制
+          </ui-button>
           <ui-button
             variant="ghost"
             class="w-full justify-start h-8 px-3 text-foreground"

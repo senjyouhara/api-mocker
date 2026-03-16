@@ -239,22 +239,16 @@ const buildCurlCommand = (): string => {
   // Body
   if (store.bodyType === 'json' && store.body) {
     if (!headers['Content-Type'] && !headers['content-type']) {
-      parts.push("-H 'Content-Type: application/json'");
+      parts.push('-H \'Content-Type: application/json\'');
     }
-    parts.push(`-d '${store.body.replace(/'/g, "'\\''")}'`);
+    parts.push(`-d '${store.body.replace(/'/g, '\'\\\'\'')}'`);
   } else if (store.bodyType === 'form') {
     const enabledFields = store.formData.filter((f) => f.enabled && f.key);
     for (const field of enabledFields) {
       parts.push(`-F '${field.key}=${field.value}'`);
     }
   } else if (store.bodyType === 'raw' && store.body) {
-    parts.push(`-d '${store.body.replace(/'/g, "'\\''")}'`);
-  }
-
-  // 代理
-  const proxy = settingsStore.activeProxy;
-  if (proxy) {
-    parts.push(`-x '${proxy}'`);
+    parts.push(`-d '${store.body.replace(/'/g, '\'\\\'\'')}'`);
   }
 
   return parts.join(' \\\n  ');
@@ -566,7 +560,13 @@ const sendRequest = async () => {
       />
 
       <!-- 复制 curl -->
-      <Button size="sm" variant="ghost" :disabled="!store.url" title="复制为 curl" @click="copyCurl">
+      <Button
+        size="sm"
+        variant="ghost"
+        :disabled="!store.url"
+        title="复制为 curl"
+        @click="copyCurl"
+      >
         <Copy :size="14" />
       </Button>
 

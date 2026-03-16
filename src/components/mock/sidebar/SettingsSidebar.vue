@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Settings, Server, Bot, Eye, EyeOff } from 'lucide-vue-next';
-import { useMockServerStore } from '@/stores/mock/server';
+import { Settings, Bot, Eye, EyeOff, Globe } from 'lucide-vue-next';
 import { useSettingsStore } from '@/stores/mock/settings';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const serverStore = useMockServerStore();
 const settingsStore = useSettingsStore();
 
 // 密钥显示状态
 const showApiKey = ref(false);
-
-// 重启服务器
-const restartServer = async () => {
-  if (serverStore.running) {
-    await serverStore.stop();
-  }
-  await serverStore.start();
-};
 </script>
 
 <template>
@@ -84,6 +74,38 @@ const restartServer = async () => {
 
         <p class="text-xs text-muted-foreground">
           支持 DeepSeek、OpenAI、Moonshot 等兼容 OpenAI 规范的 API
+        </p>
+      </div>
+
+      <!-- HTTP 代理设置 -->
+      <div class="space-y-3 border-t border-border pt-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Globe :size="14" />
+            HTTP 代理
+          </div>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <Checkbox
+              :model-value="settingsStore.proxyConfig.enabled"
+              @update:model-value="settingsStore.updateProxyConfig({ enabled: $event })"
+            />
+            <span class="text-xs text-muted-foreground">启用</span>
+          </label>
+        </div>
+
+        <!-- 代理地址 -->
+        <div class="space-y-1.5">
+          <label class="text-xs text-muted-foreground">代理地址</label>
+          <Input
+            :model-value="settingsStore.proxyConfig.target"
+            placeholder="http://127.0.0.1:7897"
+            class="h-8 font-mono text-sm"
+            @update:model-value="settingsStore.updateProxyConfig({ target: $event })"
+          />
+        </div>
+
+        <p class="text-xs text-muted-foreground">
+          启用后，请求调试面板发出的 HTTP 请求将通过此代理转发
         </p>
       </div>
     </div>

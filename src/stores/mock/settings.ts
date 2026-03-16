@@ -10,6 +10,12 @@ export interface ApiConfig {
   model: string;
 }
 
+// 代理服务器配置
+export interface ProxyConfig {
+  enabled: boolean;
+  target: string;
+}
+
 export const useSettingsStore = defineStore(
   'settings',
   () => {
@@ -51,21 +57,42 @@ export const useSettingsStore = defineStore(
       apiConfig.value = { ...apiConfig.value, ...config };
     };
 
+    // 代理服务器配置
+    const proxyConfig = ref<ProxyConfig>({
+      enabled: false,
+      target: '',
+    });
+
+    // 更新代理配置
+    const updateProxyConfig = (config: Partial<ProxyConfig>) => {
+      Object.assign(proxyConfig.value, config);
+    };
+
+    // 获取当前生效的代理地址（启用时返回地址，否则返回 undefined）
+    const activeProxy = computed(() => {
+      return proxyConfig.value.enabled && proxyConfig.value.target
+        ? proxyConfig.value.target
+        : undefined;
+    });
+
     return {
       mockServerPort,
       activeMainTab,
       apiConfig,
       isApiConfigured,
       pendingInsertContent,
+      proxyConfig,
+      activeProxy,
       setMockServerPort,
       updateApiConfig,
+      updateProxyConfig,
       setPendingInsertContent,
     };
   },
   {
     persist: {
       key: 'mock-settings',
-      pick: ['mockServerPort', 'activeMainTab', 'apiConfig'],
+      pick: ['mockServerPort', 'activeMainTab', 'apiConfig', 'proxyConfig'],
     },
   },
 );

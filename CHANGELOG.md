@@ -1,3 +1,26 @@
+## v0.3.0
+
+### 新增功能
+
+#### HTTP 正向代理
+
+- 设置页面新增 HTTP 代理配置区域（代理地址 + 启用开关）
+- 启用后，请求调试面板发出的所有 HTTP 请求（普通请求和流式请求）通过指定代理转发
+- 支持 Clash、V2Ray 等本地代理工具（如 `http://127.0.0.1:7897`）
+- 代理配置自动持久化存储
+
+#### 复制为 curl
+
+- 请求栏新增复制 curl 按钮，一键生成 curl 命令并复制到剪贴板
+- 包含 method、URL、headers、body（JSON/Form/Raw）、代理参数（`-x`）
+
+### 技术变更
+
+- `http_client.rs`：`HttpRequest` 新增可选 `proxy` 字段，根据代理配置动态构建 reqwest Client
+- `settings.ts`：新增 `ProxyConfig`（`enabled` + `target`）及 `activeProxy` 计算属性
+
+---
+
 ## v0.2.0
 
 ### 新增功能

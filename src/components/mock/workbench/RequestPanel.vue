@@ -2,12 +2,13 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { Send, WrapText, AlertCircle } from 'lucide-vue-next';
+import { Send, WrapText, AlertCircle, Copy } from 'lucide-vue-next';
 import { useRequestStore } from '@/stores/mock/request';
 import { useHistoryStore } from '@/stores/mock/history';
 import { useEnvStore } from '@/stores/mock/env';
 import { useMockRuleStore } from '@/stores/mock/rule';
 import { useCollectionStore } from '@/stores/mock/collection';
+import { useSettingsStore } from '@/stores/mock/settings';
 import { useToast } from '@/stores/toast';
 import { parseMockTemplate, formatJson, validateJson } from '@/utils/mockjs';
 import KeyValueTable from '@/components/mock/shared/KeyValueTable.vue';
@@ -23,6 +24,7 @@ const historyStore = useHistoryStore();
 const envStore = useEnvStore();
 const mockRuleStore = useMockRuleStore();
 const collectionStore = useCollectionStore();
+const settingsStore = useSettingsStore();
 const { toast } = useToast();
 
 // URL 重复错误提示
@@ -207,6 +209,64 @@ onUnmounted(() => {
   unlistenStart?.();
   unlistenChunk?.();
 });
+
+// 构建 curl 命令
+const buildCurlCommand = (): string => {
+  let finalUrl = envStore.replaceVariables(store.fullUrl);
+  if (finalUrl.startsWith('/')) {
+    const base = envStore.baseUrl;
+    if (base) {
+      finalUrl = base.replace(/\/$/, '') + finalUrl;
+    }
+  }
+
+  const parts: string[] = ['curl'];
+
+  // 方法
+  if (store.method !== 'GET') {
+    parts.push(`-X ${store.method}`);
+  }
+
+  // URL
+  parts.push(`'${finalUrl}'`);
+
+  // Headers
+  const headers = store.headersRecord;
+  for (const [key, value] of Object.entries(headers)) {
+    parts.push(`-H '${key}: ${value}'`);
+  }
+
+  // Body
+  if (store.bodyType === 'json' && store.body) {
+    if (!headers['Content-Type'] && !headers['content-type']) {
+      parts.push("-H 'Content-Type: application/json'");
+    }
+    parts.push(`-d '${store.body.replace(/'/g, "'\\''")}'`);
+  } else if (store.bodyType === 'form') {
+    const enabledFields = store.formData.filter((f) => f.enabled && f.key);
+    for (const field of enabledFields) {
+      parts.push(`-F '${field.key}=${field.value}'`);
+    }
+  } else if (store.bodyType === 'raw' && store.body) {
+    parts.push(`-d '${store.body.replace(/'/g, "'\\''")}'`);
+  }
+
+  // 代理
+  const proxy = settingsStore.activeProxy;
+  if (proxy) {
+    parts.push(`-x '${proxy}'`);
+  }
+
+  return parts.join(' \\\n  ');
+};
+
+// 复制 curl 命令
+const copyCurl = async () => {
+  if (!store.url) return;
+  const cmd = buildCurlCommand();
+  await navigator.clipboard.writeText(cmd);
+  toast({ title: '已复制 curl 命令' });
+};
 
 // 发送请求
 const sendRequest = async () => {
@@ -416,6 +476,7 @@ const sendRequest = async () => {
           url: finalUrl,
           headers: store.headersRecord,
           body: store.bodyType !== 'none' ? store.body : null,
+          proxy: settingsStore.activeProxy || null,
         },
         requestId: currentRequestId,
       });
@@ -437,6 +498,7 @@ const sendRequest = async () => {
           url: finalUrl,
           headers: store.headersRecord,
           body: store.bodyType !== 'none' ? store.body : null,
+          proxy: settingsStore.activeProxy || null,
         },
       });
 
@@ -502,6 +564,11 @@ const sendRequest = async () => {
         @keyup.enter="sendRequest"
         @blur="onUrlBlur"
       />
+
+      <!-- 复制 curl -->
+      <Button size="sm" variant="ghost" :disabled="!store.url" title="复制为 curl" @click="copyCurl">
+        <Copy :size="14" />
+      </Button>
 
       <!-- 发送按钮 -->
       <Button size="sm" :disabled="!store.url || store.isLoading" @click="sendRequest">

@@ -1,6 +1,7 @@
 // HTTP 客户端命令
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 use base64::{engine::general_purpose::STANDARD, Engine};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Instant;
@@ -13,6 +14,7 @@ pub struct HttpRequest {
     pub url: String,
     pub headers: HashMap<String, String>,
     pub body: Option<String>,
+    pub proxy: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -27,9 +29,22 @@ pub struct HttpResponse {
     pub content_type: Option<String>,
 }
 
+/// 根据代理配置构建 reqwest Client
+fn build_client(proxy: &Option<String>) -> AppResult<Client> {
+    let mut builder = Client::builder();
+    if let Some(proxy_url) = proxy {
+        if !proxy_url.is_empty() {
+            let p = reqwest::Proxy::all(proxy_url)
+                .map_err(|e| AppError::Custom(format!("代理配置无效: {}", e)))?;
+            builder = builder.proxy(p);
+        }
+    }
+    builder.build().map_err(|e| AppError::Custom(format!("创建 HTTP 客户端失败: {}", e)))
+}
+
 #[tauri::command]
 pub async fn send_http_request(request: HttpRequest) -> AppResult<HttpResponse> {
-    let client = reqwest::Client::new();
+    let client = build_client(&request.proxy)?;
     let start = Instant::now();
 
     // 构建请求
@@ -116,7 +131,7 @@ pub async fn send_http_request_stream(
     request: HttpRequest,
     request_id: String,
 ) -> AppResult<()> {
-    let client = reqwest::Client::new();
+    let client = build_client(&request.proxy)?;
 
     // 构建请求
     let method = request.method.parse().unwrap_or(reqwest::Method::GET);

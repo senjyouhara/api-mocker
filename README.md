@@ -17,6 +17,7 @@
   - 支持 `Params / Headers / Body`（`none/json/form/raw`）
   - JSON 实时校验与格式化
   - 若当前接口存在激活 Mock 规则，优先返回本地 Mock 响应；否则发起真实 HTTP 请求
+  - 支持一键复制为 curl 命令（含 method、headers、body、代理参数）
 - **响应查看**
   - 状态码、耗时、响应头、响应体展示
   - JSON 高亮展示、图片预览
@@ -46,6 +47,7 @@
 - **其他**
   - 深色/浅色主题切换
   - 前端状态持久化（Pinia persistedstate）
+  - HTTP 正向代理：在设置中配置代理地址并启用后，请求调试面板的所有 HTTP 请求将通过代理转发
 
 ## 快速开始
 

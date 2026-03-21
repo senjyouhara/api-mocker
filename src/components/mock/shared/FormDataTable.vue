@@ -201,7 +201,7 @@ if (items.value.length === 0) {
     <!-- 添加按钮 -->
     <Button
       variant="ghost"
-      class="w-full h-8 text-muted-foreground hover:text-primary"
+      class="w-full h-8 text-muted-foreground hover:text-accent-foreground"
       @click="addRow"
     >
       <Plus :size="14" />

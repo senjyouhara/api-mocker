@@ -3,12 +3,14 @@ import { computed, watch, ref } from 'vue';
 import { Save, AlertCircle } from 'lucide-vue-next';
 import { useCollectionStore } from '@/stores/mock/collection';
 import { useRequestStore } from '@/stores/mock/request';
+import { useMockRuleStore } from '@/stores/mock/rule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { HttpMethod } from '@/types/mock';
 
 const collectionStore = useCollectionStore();
 const requestStore = useRequestStore();
+const mockRuleStore = useMockRuleStore();
 
 // URL 重复错误提示
 const urlError = ref('');
@@ -45,7 +47,7 @@ watch([localMethod, localPath], () => {
   urlError.value = '';
 });
 
-// 校验 URL 唯一性
+// 校验 URL 唯一性（仅对配置了 mock 规则的接口判重）
 const validateUrl = () => {
   if (!currentEndpoint.value) return;
   const path = localPath.value.trim();
@@ -54,7 +56,7 @@ const validateUrl = () => {
     path,
     currentEndpoint.value.id,
   );
-  if (duplicate) {
+  if (duplicate && mockRuleStore.rules.some((r) => r.endpointId === duplicate.id)) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
     urlError.value = `URL 已存在：${groupPath}/${duplicate.name} (${duplicate.method} ${duplicate.path || '空路径'})`;
   }
@@ -64,14 +66,14 @@ const validateUrl = () => {
 const saveChanges = () => {
   if (!currentEndpoint.value) return;
 
-  // 校验 URL 唯一性（method + path 组合）
+  // 校验 URL 唯一性（仅对配置了 mock 规则的接口判重）
   const path = localPath.value.trim();
   const duplicate = collectionStore.getDuplicateEndpoint(
     localMethod.value,
     path,
     currentEndpoint.value.id,
   );
-  if (duplicate) {
+  if (duplicate && mockRuleStore.rules.some((r) => r.endpointId === duplicate.id)) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
     urlError.value = `URL 已存在：${groupPath}/${duplicate.name} (${duplicate.method} ${duplicate.path || '空路径'})`;
     return;

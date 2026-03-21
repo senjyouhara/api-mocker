@@ -31,7 +31,7 @@ const highlightedJson = computed(() => {
 </script>
 
 <template>
-  <pre class="json-highlight text-sm font-mono whitespace-pre-wrap" v-html="highlightedJson"></pre>
+  <pre class="json-highlight text-sm font-mono whitespace-pre-wrap select-text cursor-text" v-html="highlightedJson"></pre>
 </template>
 
 <style scoped>

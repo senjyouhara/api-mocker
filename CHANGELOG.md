@@ -1,3 +1,13 @@
+## v0.4.1
+
+### 优化改进
+
+- 响应体内容支持选中复制（ResponseViewer、JsonHighlight、HistoryDetailDialog）
+- 暗色模式下 Params/FormData 面板「添加」按钮悬浮时文字颜色优化，避免在背景色下看不清
+- URL 重复校验逻辑调整：仅对配置了 Mock 规则的接口进行 method + path 重复判断，未配置规则的接口不再触发重复提示
+
+---
+
 ## v0.4.0
 
 ### 新增功能

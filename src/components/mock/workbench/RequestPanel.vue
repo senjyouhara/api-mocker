@@ -84,7 +84,7 @@ watch(
   },
 );
 
-// 校验 URL 唯一性
+// 校验 URL 唯一性（仅对配置了 mock 规则的接口判重）
 const validateUrl = () => {
   urlError.value = '';
   if (!store.currentEndpointId) return;
@@ -96,7 +96,7 @@ const validateUrl = () => {
     path,
     store.currentEndpointId,
   );
-  if (duplicate) {
+  if (duplicate && mockRuleStore.rules.some((r) => r.endpointId === duplicate.id)) {
     const groupPath = collectionStore.getGroupFullPath(duplicate.groupId);
     urlError.value = `URL 已存在：${groupPath}/${duplicate.name} (${duplicate.method} ${duplicate.path || '空路径'})`;
   }

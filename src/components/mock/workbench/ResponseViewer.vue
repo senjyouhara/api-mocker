@@ -247,7 +247,7 @@ const downloadFile = async () => {
     </div>
 
     <!-- 响应体 -->
-    <div class="flex-1 overflow-auto p-3">
+    <div class="flex-1 overflow-auto p-3 select-text">
       <!-- 流式加载进度（通用） -->
       <div v-if="isStreaming" class="flex flex-col items-center gap-2 py-8">
         <Loader2 :size="32" class="text-primary animate-spin" />

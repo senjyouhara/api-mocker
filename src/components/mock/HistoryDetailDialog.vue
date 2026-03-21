@@ -220,7 +220,7 @@ const responseHeadersArray = computed(() => {
                 </Button>
               </div>
               <pre
-                class="p-2 bg-muted rounded text-xs font-mono overflow-auto max-h-60 text-foreground"
+                class="p-2 bg-muted rounded text-xs font-mono overflow-auto max-h-60 text-foreground select-text cursor-text"
               >{{ formatJson(history.response.body) }}</pre
               >
             </div>
